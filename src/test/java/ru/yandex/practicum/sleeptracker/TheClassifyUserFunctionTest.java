@@ -40,8 +40,8 @@ class TheClassifyUserFunctionTest {
 
     @Test
     void testSingleSessionZhavoronok() {
-        List<SleepingSession> sessions = List.of(new SleepingSession
-                (LocalDateTime.of(2026, 1, 23, 21, 0),
+        List<SleepingSession> sessions = List.of(new SleepingSession(
+                        LocalDateTime.of(2026, 1, 23, 21, 0),
                         LocalDateTime.of(2026, 1, 23, 6, 30),
                         Quality.BAD)
         );
