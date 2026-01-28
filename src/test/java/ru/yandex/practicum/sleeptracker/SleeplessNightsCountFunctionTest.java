@@ -49,8 +49,9 @@ class SleeplessNightsCountFunctionTest {
 
     @Test
     void testApplySessionDoesNotOverlapSleeplessNight() {
-        List<SleepingSession> sessions = List.of(new SleepingSession
-                (LocalDateTime.of(2026, 1, 23, 22, 0),
+        List<SleepingSession> sessions = List.of(
+                new SleepingSession(
+                        LocalDateTime.of(2026, 1, 23, 22, 0),
                         LocalDateTime.of(2026, 1, 23, 23, 30),
                         Quality.GOOD)
         );
@@ -60,8 +61,9 @@ class SleeplessNightsCountFunctionTest {
 
     @Test
     void testApplySingleSessionOverlapsNightNoSleeplessNight() {
-        List<SleepingSession> sessions = List.of(new SleepingSession
-                (LocalDateTime.of(2026, 1, 23, 23, 0),
+        List<SleepingSession> sessions = List.of(
+                new SleepingSession(
+                        LocalDateTime.of(2026, 1, 23, 23, 0),
                         LocalDateTime.of(2026, 1, 24, 1, 0),
                         Quality.GOOD)
         );
