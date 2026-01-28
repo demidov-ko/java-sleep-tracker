@@ -38,7 +38,7 @@ class AverageSessionDurationFunctionTest {
         List<SleepingSession> sessions = List.of(session);
 
         Object result = function.apply(sessions);
-        assertEquals("60,00", result);
+        assertEquals("60.00", result);
     }
 
     @Test
@@ -54,6 +54,6 @@ class AverageSessionDurationFunctionTest {
                         Quality.BAD)
         );
         Object result = function.apply(sessions);
-        assertEquals("352,50", result);
+        assertEquals("352.50", result);
     }
 }

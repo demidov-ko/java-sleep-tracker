@@ -3,6 +3,7 @@ package ru.yandex.practicum.sleeptracker.function;
 import ru.yandex.practicum.sleeptracker.sleepsession.SleepingSession;
 
 import java.util.List;
+import java.util.Locale;
 
 public class AverageSessionDurationFunction implements AnalysisFunction {
 
@@ -21,6 +22,6 @@ public class AverageSessionDurationFunction implements AnalysisFunction {
                 .average()
                 .orElse(0.0);
 
-        return String.format("%.2f", average);
+        return String.format(Locale.US, "%.2f", average);
     }
 }
