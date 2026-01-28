@@ -4,7 +4,6 @@ import ru.yandex.practicum.sleeptracker.function.*;
 import ru.yandex.practicum.sleeptracker.sleepsession.SessionParser;
 import ru.yandex.practicum.sleeptracker.sleepsession.SleepingSession;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
