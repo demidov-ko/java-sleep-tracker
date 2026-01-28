@@ -4,7 +4,7 @@ import ru.yandex.practicum.sleeptracker.sleepsession.SleepingSession;
 
 import java.util.List;
 
-public class MinSessionDurationFunction implements AnalysisFunction{
+public class MinSessionDurationFunction implements AnalysisFunction {
     @Override
     public Object apply(List<SleepingSession> sessions) {
         if (sessions.isEmpty()) {
