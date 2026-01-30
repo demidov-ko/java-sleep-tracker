@@ -70,4 +70,55 @@ class SleeplessNightsCountFunctionTest {
         Object result = function.apply(sessions);
         assertEquals(0L, result);
     }
+
+    @Test
+    void testApplySessionsCrossMonthBoundarySleeplessNight() {
+        List<SleepingSession> sessions = List.of(
+                new SleepingSession(
+                        LocalDateTime.of(2026, 1, 30, 23, 0),
+                        LocalDateTime.of(2026, 1, 31, 8, 30),
+                        Quality.GOOD),
+                new SleepingSession(
+                        LocalDateTime.of(2026, 2, 1, 22, 0),
+                        LocalDateTime.of(2026, 2, 2, 4, 30),
+                        Quality.NORMAL)
+        );
+
+        Object result = function.apply(sessions);
+        assertEquals(1L, result);
+    }
+
+    @Test
+    void testApplyCrossMonthBoundaryWithSleeplessNight() {
+        List<SleepingSession> sessions = List.of(
+                new SleepingSession(
+                        LocalDateTime.of(2026, 1, 30, 23, 0),
+                        LocalDateTime.of(2026, 1, 31, 5, 30),
+                        Quality.GOOD),
+                new SleepingSession(
+                        LocalDateTime.of(2026, 2, 2, 22, 0),
+                        LocalDateTime.of(2026, 2, 3, 4, 0),
+                        Quality.NORMAL)
+        );
+
+        Object result = function.apply(sessions);
+        assertEquals(2L, result);
+    }
+
+    @Test
+    void testApplyFirstSessionStartsAfterNoon() {
+        List<SleepingSession> sessions = List.of(
+                new SleepingSession(
+                        LocalDateTime.of(2026, 2, 1, 14, 0),
+                        LocalDateTime.of(2026, 2, 1, 22, 0),
+                        Quality.BAD),
+                new SleepingSession(
+                        LocalDateTime.of(2026, 2, 3, 23, 0),
+                        LocalDateTime.of(2026, 2, 4, 7, 0),
+                        Quality.GOOD)
+        );
+
+        Object result = function.apply(sessions);
+        assertEquals(2L, result);
+    }
 }

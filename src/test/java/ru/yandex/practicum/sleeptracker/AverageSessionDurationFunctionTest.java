@@ -24,8 +24,8 @@ class AverageSessionDurationFunctionTest {
     public void testApplyEmptyListReturnsZero() {
         List<SleepingSession> emptySessions = new ArrayList<>();
 
-        double result = (double) function.apply(emptySessions);
-        assertEquals(0.0, result, 0.0);
+        String result = function.apply(emptySessions);
+        assertEquals("0.0", result);
     }
 
     @Test
@@ -37,7 +37,7 @@ class AverageSessionDurationFunctionTest {
         );
         List<SleepingSession> sessions = List.of(session);
 
-        Object result = function.apply(sessions);
+        String result = function.apply(sessions);
         assertEquals("60.00", result);
     }
 
@@ -53,7 +53,7 @@ class AverageSessionDurationFunctionTest {
                         LocalDateTime.of(2026, 1, 28, 4, 15),
                         Quality.BAD)
         );
-        Object result = function.apply(sessions);
+        String result = function.apply(sessions);
         assertEquals("352.50", result);
     }
 }

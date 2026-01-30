@@ -1,13 +1,13 @@
 package ru.yandex.practicum.sleeptracker.function;
 
+import ru.yandex.practicum.sleeptracker.sleepsession.NightUtils;
 import ru.yandex.practicum.sleeptracker.sleepsession.SleepingSession;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SleeplessNightsCountFunction implements AnalysisFunction {
@@ -18,51 +18,30 @@ public class SleeplessNightsCountFunction implements AnalysisFunction {
 
     @Override
     public Object apply(List<SleepingSession> sessions) {
-
         if (sessions.isEmpty()) return 0L;
 
-        LocalDate minDate = sessions.stream()
-                .map(session -> session.getStartTime().toLocalDate())
-                .min(LocalDate::compareTo)
-                .orElse(null);
+        LocalDateTime logStart = sessions.stream()
+                .map(SleepingSession::getStartTime)
+                .min(LocalDateTime::compareTo)
+                .orElseThrow();
 
-        LocalDate maxDate = sessions.stream()
-                .map(session -> session.getEndTime().toLocalDate())
-                .max(LocalDate::compareTo)
-                .orElse(null);
+        LocalDateTime logEnd = sessions.stream()
+                .map(SleepingSession::getEndTime)
+                .max(LocalDateTime::compareTo)
+                .orElseThrow();
 
-        if (minDate == null || maxDate == null) return 0L;
+        LocalDate startNight = logStart.toLocalTime().isBefore(LocalTime.NOON)
+                ? logStart.toLocalDate().minusDays(1)
+                : logStart.toLocalDate();
 
-        long daysBetween = Period.between(minDate.plusDays(1), maxDate).getDays();
+        LocalDate endNight = logEnd.toLocalDate();
 
+        long nights = ChronoUnit.DAYS.between(startNight, endNight) + 1;
 
-        Set<LocalDate> allDates = Stream.iterate(minDate.plusDays(1),
-                        date -> date.plusDays(1))
-                .limit(daysBetween + 1)
-                .collect(Collectors.toSet());
-
-        long sleeplessCount = allDates.stream()
-                .filter(date -> sessions.stream().noneMatch(session -> {
-                    LocalDate startDate = session.getStartTime().toLocalDate();
-                    LocalDate endDate = session.getEndTime().toLocalDate();
-
-                    if (!startDate.equals(date) && !endDate.equals(date)) {
-                        return false;
-                    }
-
-                    LocalTime startTime = startDate.equals(date)
-                            ? session.getStartTime().toLocalTime()
-                            : LocalTime.MIDNIGHT;
-
-                    LocalTime endTime = endDate.equals(date)
-                            ? session.getEndTime().toLocalTime()
-                            : LocalTime.MAX;
-
-                    return startTime.isBefore(LocalTime.of(6, 0))
-                            && endTime.isAfter(LocalTime.MIDNIGHT);
-                }))
+        return Stream.iterate(startNight, day -> day.plusDays(1))
+                .limit(nights)
+                .filter(night -> NightUtils.nightIntersectsLogging(night, logStart, logEnd))
+                .filter(night -> NightUtils.isNightUncovered(night, sessions))
                 .count();
-
-        return sleeplessCount;
     }
 }

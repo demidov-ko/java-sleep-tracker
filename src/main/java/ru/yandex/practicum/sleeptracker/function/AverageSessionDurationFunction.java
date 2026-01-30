@@ -13,9 +13,9 @@ public class AverageSessionDurationFunction implements AnalysisFunction {
     }
 
     @Override
-    public Object apply(List<SleepingSession> sessions) {
+    public String apply(List<SleepingSession> sessions) {
         if (sessions.isEmpty()) {
-            return 0.0;
+            return "0.0";
         }
         double average = sessions.stream()
                 .mapToLong(SleepingSession::getDurationInMinutes)

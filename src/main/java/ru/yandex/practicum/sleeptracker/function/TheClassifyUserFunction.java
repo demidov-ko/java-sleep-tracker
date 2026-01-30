@@ -1,12 +1,17 @@
 package ru.yandex.practicum.sleeptracker.function;
 
 import ru.yandex.practicum.sleeptracker.sleepsession.Chronotype;
+import ru.yandex.practicum.sleeptracker.sleepsession.NightUtils;
 import ru.yandex.practicum.sleeptracker.sleepsession.SleepingSession;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TheClassifyUserFunction implements AnalysisFunction {
 
@@ -21,43 +26,63 @@ public class TheClassifyUserFunction implements AnalysisFunction {
             return Chronotype.GOLUB;
         }
 
-        Map<Chronotype, Long> counts = sessions.stream()
-                .map(session -> {
-                    LocalTime sleepTime = session.getStartTime().toLocalTime();
-                    LocalTime wakeTime = session.getEndTime().toLocalTime();
+        LocalDateTime logStart = sessions.stream()
+                .map(SleepingSession::getStartTime)
+                .min(LocalDateTime::compareTo)
+                .orElseThrow();
 
-                    if (sleepTime == null || wakeTime == null) {
-                        return Chronotype.GOLUB;
-                    }
+        LocalDateTime logEnd = sessions.stream()
+                .map(SleepingSession::getEndTime)
+                .max(LocalDateTime::compareTo)
+                .orElseThrow();
 
-                    if (sleepTime.isAfter(LocalTime.of(23, 0)) &&
-                            wakeTime.isAfter(LocalTime.of(9, 0))) {
-                        return Chronotype.SOWA;
-                    } else if (sleepTime.isBefore(LocalTime.of(22, 0)) &&
-                            wakeTime.isBefore(LocalTime.of(7, 0))) {
-                        return Chronotype.ZHAVORONOK;
-                    } else {
-                        return Chronotype.GOLUB;
-                    }
-                })
-                .collect(Collectors.groupingBy(
-                        type -> type,
-                        Collectors.counting()
+        LocalDate startNight = logStart.toLocalTime().isBefore(LocalTime.NOON)
+                ? logStart.toLocalDate().minusDays(1)
+                : logStart.toLocalDate();
+
+        LocalDate endNight = logEnd.toLocalDate();
+
+        long nights = ChronoUnit.DAYS.between(startNight, endNight) + 1;
+
+        Map<Chronotype, Long> counts = Stream.iterate(startNight, d -> d.plusDays(1))
+                .limit(nights)
+                .filter(night -> NightUtils.nightIntersectsLogging(night, logStart, logEnd))
+                .filter(night -> !NightUtils.isNightUncovered(night, sessions))
+                .map(night -> classifyNight(night, sessions))
+                .collect(Collectors.groupingBy(c -> c, Collectors.counting()
                 ));
 
-        long sowaCount = counts.getOrDefault(Chronotype.SOWA, 0L);
-        long zhavoronokCount = counts.getOrDefault(Chronotype.ZHAVORONOK, 0L);
-        long golubCount = counts.getOrDefault(Chronotype.GOLUB, 0L);
+        long sowa = counts.getOrDefault(Chronotype.SOWA, 0L);
+        long zhavoronok = counts.getOrDefault(Chronotype.ZHAVORONOK, 0L);
+        long golub = counts.getOrDefault(Chronotype.GOLUB, 0L);
 
-        // Определяем итоговый хронотип
-        if (sowaCount > zhavoronokCount && sowaCount > golubCount) {
+        if (sowa > zhavoronok && sowa > golub) return Chronotype.SOWA;
+        if (zhavoronok > sowa && zhavoronok > golub) return Chronotype.ZHAVORONOK;
+        return Chronotype.GOLUB;
+    }
+
+    private Chronotype classifyNight(LocalDate night, List<SleepingSession> sessions) {
+        LocalDateTime nightStart = night.atTime(0, 0);
+        LocalDateTime nightEnd = night.atTime(6, 0);
+
+        SleepingSession session = sessions.stream()
+                .filter(s -> s.getStartTime().isBefore(nightEnd) &&
+                        s.getEndTime().isAfter(nightStart)
+                )
+                .findFirst()
+                .orElseThrow();
+
+        LocalTime sleepTime = session.getStartTime().toLocalTime();
+        LocalTime wakeTime = session.getEndTime().toLocalTime();
+
+        if (sleepTime.isAfter(LocalTime.of(23, 0)) &&
+                wakeTime.isAfter(LocalTime.of(9, 0))) {
             return Chronotype.SOWA;
         }
-        if (zhavoronokCount > sowaCount && zhavoronokCount > golubCount) {
+        if (sleepTime.isBefore(LocalTime.of(22, 0)) &&
+                wakeTime.isBefore(LocalTime.of(7, 0))) {
             return Chronotype.ZHAVORONOK;
         }
-
         return Chronotype.GOLUB;
-
     }
 }
